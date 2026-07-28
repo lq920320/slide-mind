@@ -1,0 +1,41 @@
+name: Bug 报告 / Bug Report
+description: 报告一个可复现的问题
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 应用版本 / App version
+      placeholder: v0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统 / OS
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. 打开 …
+        2. 点击 …
+        3. 出现 …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为 / Expected behavior
+  - type: textarea
+    id: extra
+    attributes:
+      label: 附加信息 / Additional context
+      description: 截图、.smind 样本（可脱敏）、报错信息等

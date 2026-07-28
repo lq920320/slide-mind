@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "产品发布会提案",
+    "createdAt": "2026-07-27T00:00:00.000Z",
+    "updatedAt": "2026-07-27T00:00:00.000Z"
+  },
+  "mindmap": {
+    "nodeData": {
+      "id": "root",
+      "topic": "产品发布会提案",
+      "children": [
+        {
+          "id": "why",
+          "topic": "为什么现在做",
+          "children": [
+            {
+              "id": "why-market",
+              "topic": "市场时机",
+              "children": [
+                { "id": "why-market-1", "topic": "竞品尚未覆盖细分场景" },
+                { "id": "why-market-2", "topic": "用户调研需求强烈" }
+              ]
+            },
+            {
+              "id": "why-team",
+              "topic": "团队就绪",
+              "children": [
+                { "id": "why-team-1", "topic": "核心功能已完成灰度" },
+                { "id": "why-team-2", "topic": "客服与文档准备完毕" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "what",
+          "topic": "发布什么",
+          "children": [
+            {
+              "id": "what-feature",
+              "topic": "三大新特性",
+              "children": [
+                { "id": "what-f1", "topic": "一键演示" },
+                { "id": "what-f2", "topic": "多端同步" },
+                { "id": "what-f3", "topic": "开放导出" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "how",
+          "topic": "怎么执行",
+          "children": [
+            {
+              "id": "how-plan",
+              "topic": "时间线",
+              "children": [
+                { "id": "how-p1", "topic": "T-2 周：媒体预热" },
+                { "id": "how-p2", "topic": "T 日：线上发布会" },
+                { "id": "how-p3", "topic": "T+1 周：用户反馈复盘" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "slides": {
+    "config": { "theme": "default", "aspectRatio": "16/9" },
+    "pages": [
+      { "nodeId": "root", "notes": "开场 30 秒：一句话说清楚我们要发布什么。", "hidden": false },
+      { "nodeId": "why", "notes": "", "hidden": false },
+      { "nodeId": "why-market", "notes": "引用调研数据，控制在 2 分钟。", "hidden": false },
+      { "nodeId": "why-team", "notes": "", "hidden": false },
+      { "nodeId": "what", "notes": "", "hidden": false },
+      { "nodeId": "what-feature", "notes": "现场演示，预留 5 分钟。", "hidden": false },
+      { "nodeId": "how", "notes": "", "hidden": false },
+      { "nodeId": "how-plan", "notes": "强调各节点负责人。", "hidden": false }
+    ]
+  }
+}
