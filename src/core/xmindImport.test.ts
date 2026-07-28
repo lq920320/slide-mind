@@ -47,8 +47,8 @@ describe('xmindToMind', () => {
     expect(mind.nodeData.id).toBeTruthy()
   })
 
-  it('非法 JSON 与缺少根主题时报错', () => {
-    expect(() => xmindToMind('{bad')).toThrow('不是合法的 JSON')
-    expect(() => xmindToMind('[]')).toThrow('缺少根主题')
+  it('非法 JSON 与缺少根主题时抛对应错误码', () => {
+    expect(() => xmindToMind('{bad')).toThrow('xmindInvalidJson')
+    expect(() => xmindToMind('[]')).toThrow('xmindMissingRoot')
   })
 })

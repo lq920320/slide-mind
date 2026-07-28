@@ -3,8 +3,10 @@ import { open, save } from '@tauri-apps/plugin-dialog'
 import { snapdom } from '@zumer/snapdom'
 import { jsPDF } from 'jspdf'
 import { slideDocToSlidevMarkdown } from '@/core/slidevExport'
+import { mindToMarkdown } from '@/core/markdownOutline'
 import type { SlideAppearance, SlidePage } from '@/core/types'
 import { t } from '@/i18n'
+import { mindMap } from '@/mindmap/adapter'
 import { useDocumentStore } from '@/stores/document'
 import { useSlidesStore } from '@/stores/slides'
 
@@ -65,6 +67,34 @@ export async function exportSlidesPdf(): Promise<string | null> {
 
   const bytes = new Uint8Array(pdf.output('arraybuffer'))
   await invoke('write_binary_base64', { path: target, data: bytesToBase64(bytes) })
+  return target
+}
+
+/** 导出为 XMind 文件（官方生态包打包 zip；传拷贝避免原地修改画布数据） */
+export async function exportXmind(): Promise<string | null> {
+  const target = await save({
+    filters: [{ name: 'XMind', extensions: ['xmind'] }],
+    defaultPath: `${docTitle()}.xmind`,
+  })
+  if (!target) return null
+
+  const { data2Xmind } = await import('@mind-elixir/export-xmind')
+  const data = JSON.parse(JSON.stringify(mindMap.getData()))
+  const blob = await data2Xmind(data)
+  const bytes = new Uint8Array(await blob.arrayBuffer())
+  await invoke('write_binary_base64', { path: target, data: bytesToBase64(bytes) })
+  return target
+}
+
+/** 导出导图为 Markdown 大纲 */
+export async function exportMarkdownOutline(): Promise<string | null> {
+  const target = await save({
+    filters: [{ name: 'Markdown', extensions: ['md'] }],
+    defaultPath: `${docTitle()}.md`,
+  })
+  if (!target) return null
+  const content = mindToMarkdown(useDocumentStore().doc.mindmap)
+  await invoke('write_document', { path: target, content })
   return target
 }
 

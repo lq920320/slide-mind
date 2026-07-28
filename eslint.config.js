@@ -39,5 +39,13 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    // 幻灯片标题/要点的内联 Markdown 渲染：内容经 renderInlineMarkdown 全量 HTML 转义
+    // 后仅输出受控标签（strong/code/em/del），非用户可控 HTML，见 core/inlineMarkdown 防注入测试
+    files: ['src/components/PresentationView.vue', 'src/components/SlidePanel.vue'],
+    rules: {
+      'vue/no-v-html': 'off',
+    },
+  },
   prettierConfig,
 )

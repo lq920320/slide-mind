@@ -8,6 +8,15 @@
       "esbuild"
     ]
   },
+  "lint-staged": {
+    "*.{ts,mts,mjs,js,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
@@ -19,9 +28,11 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons:gen": "node scripts/gen-icons.mjs"
+    "icons:gen": "node scripts/gen-icons.mjs",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@mind-elixir/export-xmind": "^2.0.1",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.2",
     "@tauri-apps/plugin-opener": "^2",
@@ -46,7 +57,10 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-vue": "^10.3.0",
     "globals": "^17.7.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
+    "jszip": "^3.10.1",
+    "lint-staged": "^17.2.0",
     "prettier": "^3.6.2",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.35.0",

@@ -10,6 +10,8 @@ export interface MindNode {
   children?: MindNode[]
   hyperLink?: string
   image?: { url: string; width: number; height: number }
+  /** 节点样式（mind-elixir 兼容子集） */
+  style?: { fontWeight?: string; fontSize?: string; color?: string; background?: string }
 }
 
 /** 思维导图数据根 */

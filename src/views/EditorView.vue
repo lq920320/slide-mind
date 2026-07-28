@@ -10,6 +10,7 @@ import PresentationView from '@/components/PresentationView.vue'
 import SettingsDialog from '@/components/SettingsDialog.vue'
 import SlidePanel from '@/components/SlidePanel.vue'
 import { searchNodes } from '@/core/search'
+import { formatError } from '@/i18n'
 import { MIND_THEMES, mindMap } from '@/mindmap/adapter'
 import { useDocumentStore } from '@/stores/document'
 import { useSlidesStore } from '@/stores/slides'
@@ -21,8 +22,9 @@ const slides = useSlidesStore()
 const showOutline = ref(true)
 const showSlides = ref(true)
 const presenting = ref(false)
-const showRecent = ref(false)
-const showExport = ref(false)
+/** 当前展开的工具栏下拉菜单（互斥，点击外部关闭） */
+const openMenu = ref<'recent' | 'import' | 'export' | null>(null)
+const searchActive = ref(false)
 const showSettings = ref(false)
 const exportStatus = ref('')
 const themeName = ref(MIND_THEMES[0].name)
@@ -50,18 +52,30 @@ function locateNode(id: string) {
   mindMap.focusNode(id)
 }
 
+function toggleMenu(name: 'recent' | 'import' | 'export') {
+  openMenu.value = openMenu.value === name ? null : name
+}
+
+// 点击菜单外部时收起下拉与搜索结果
+function handleGlobalPointerDown(e: PointerEvent) {
+  const target = e.target as HTMLElement | null
+  if (!target?.closest('.menu-wrap')) openMenu.value = null
+  if (!target?.closest('.search-wrap')) searchActive.value = false
+}
+
 function pickSearchResult(id: string) {
   locateNode(id)
   keyword.value = ''
+  searchActive.value = false
 }
 
 async function openRecent(path: string) {
-  showRecent.value = false
+  openMenu.value = null
   await store.openDocument(path)
 }
 
-async function runExport(kind: 'slidev' | 'pdf' | 'png') {
-  showExport.value = false
+async function runExport(kind: 'slidev' | 'pdf' | 'png' | 'outline' | 'xmind') {
+  openMenu.value = null
   try {
     // 按需加载导出模块（jspdf/snapdom 体积较大，不进主包）
     const svc = await import('@/export/exportService')
@@ -71,12 +85,18 @@ async function runExport(kind: 'slidev' | 'pdf' | 'png') {
     } else if (kind === 'pdf') {
       const path = await svc.exportSlidesPdf()
       if (path) flashStatus(t('status.exportedPdf', { path }))
-    } else {
+    } else if (kind === 'png') {
       const count = await svc.exportSlidesPng()
       if (count) flashStatus(t('status.exportedPng', { count }))
+    } else if (kind === 'xmind') {
+      const path = await svc.exportXmind()
+      if (path) flashStatus(t('status.exportedXmind', { path }))
+    } else {
+      const path = await svc.exportMarkdownOutline()
+      if (path) flashStatus(t('status.exportedOutline', { path }))
     }
   } catch (e) {
-    store.error = String(e)
+    store.error = formatError(e)
   }
 }
 
@@ -164,6 +184,7 @@ let unlistenClose: (() => void) | undefined
 
 onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
+  document.addEventListener('pointerdown', handleGlobalPointerDown)
   await store.loadRecentFiles()
   if (!isTauri()) return
   void checkUpdateSilently()
@@ -179,6 +200,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('pointerdown', handleGlobalPointerDown)
   unlistenClose?.()
 })
 </script>
@@ -189,11 +211,11 @@ onBeforeUnmount(() => {
       <div class="toolbar-group">
         <button @click="store.newDocument()">{{ t('toolbar.new') }}</button>
         <button @click="store.openDocument()">{{ t('toolbar.open') }}</button>
-        <div class="recent-wrap">
-          <button :disabled="!store.recentFiles.length" @click="showRecent = !showRecent">
+        <div class="menu-wrap">
+          <button :disabled="!store.recentFiles.length" @click="toggleMenu('recent')">
             {{ t('toolbar.recent') }}
           </button>
-          <ul v-if="showRecent && store.recentFiles.length" class="dropdown">
+          <ul v-if="openMenu === 'recent' && store.recentFiles.length" class="dropdown">
             <li v-for="path in store.recentFiles" :key="path">
               <button :title="path" @click="openRecent(path)">
                 {{ path.split('/').pop() }}
@@ -205,12 +227,26 @@ onBeforeUnmount(() => {
           {{ store.saving ? t('toolbar.saving') : t('toolbar.save') }}
         </button>
         <button @click="store.saveDocumentAs()">{{ t('toolbar.saveAs') }}</button>
-        <button :title="t('toolbar.importTip')" @click="store.importXmind()">
-          {{ t('toolbar.import') }}
-        </button>
-        <div class="recent-wrap">
-          <button @click="showExport = !showExport">{{ t('toolbar.export') }}</button>
-          <ul v-if="showExport" class="dropdown">
+        <div class="menu-wrap">
+          <button :title="t('toolbar.importTip')" @click="toggleMenu('import')">
+            {{ t('toolbar.import') }}
+          </button>
+          <ul v-if="openMenu === 'import'" class="dropdown">
+            <li>
+              <button @click="((openMenu = null), store.importXmind())">
+                {{ t('toolbar.importXmind') }}
+              </button>
+            </li>
+            <li>
+              <button @click="((openMenu = null), store.importMarkdown())">
+                {{ t('toolbar.importMarkdown') }}
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="menu-wrap">
+          <button @click="toggleMenu('export')">{{ t('toolbar.export') }}</button>
+          <ul v-if="openMenu === 'export'" class="dropdown">
             <li>
               <button @click="runExport('slidev')">{{ t('toolbar.exportSlidev') }}</button>
             </li>
@@ -219,6 +255,12 @@ onBeforeUnmount(() => {
             </li>
             <li>
               <button @click="runExport('png')">{{ t('toolbar.exportPng') }}</button>
+            </li>
+            <li>
+              <button @click="runExport('xmind')">{{ t('toolbar.exportXmind') }}</button>
+            </li>
+            <li>
+              <button @click="runExport('outline')">{{ t('toolbar.exportOutline') }}</button>
             </li>
           </ul>
         </div>
@@ -249,8 +291,12 @@ onBeforeUnmount(() => {
             v-model="keyword"
             type="search"
             :placeholder="t('toolbar.searchPlaceholder')"
+            @focus="searchActive = true"
           />
-          <ul v-if="keyword && searchResults.length" class="dropdown search-results">
+          <ul
+            v-if="searchActive && keyword && searchResults.length"
+            class="dropdown search-results"
+          >
             <li v-for="m in searchResults" :key="m.id">
               <button @click="pickSearchResult(m.id)">
                 <span class="result-topic">{{ m.topic }}</span>
@@ -382,7 +428,7 @@ onBeforeUnmount(() => {
   width: 180px;
 }
 
-.recent-wrap,
+.menu-wrap,
 .search-wrap {
   position: relative;
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CoreError } from './errors'
 import { createEmptyDocument, parseDocument, serializeDocument } from './smind'
 
 describe('smind 文档格式', () => {
@@ -17,17 +18,17 @@ describe('smind 文档格式', () => {
     expect(restored.meta.title).toBe('新标题')
   })
 
-  it('非法 JSON 报错', () => {
-    expect(() => parseDocument('{oops')).toThrow('文件不是合法的 JSON')
+  it('非法 JSON 抛 invalidJson', () => {
+    expect(() => parseDocument('{oops')).toThrow(new CoreError('invalidJson'))
   })
 
-  it('版本不支持时报错', () => {
-    expect(() => parseDocument(JSON.stringify({ version: 99 }))).toThrow('不支持的文件版本')
+  it('版本不支持时抛 unsupportedVersion', () => {
+    expect(() => parseDocument(JSON.stringify({ version: 99 }))).toThrow('unsupportedVersion')
   })
 
-  it('缺少导图数据时报错', () => {
+  it('缺少导图数据时抛 missingMindmap', () => {
     expect(() => parseDocument(JSON.stringify({ version: 1, mindmap: {} }))).toThrow(
-      '文件缺少有效的思维导图数据',
+      'missingMindmap',
     )
   })
 })

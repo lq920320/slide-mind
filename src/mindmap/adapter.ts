@@ -2,6 +2,7 @@ import MindElixir, { DARK_THEME, THEME } from 'mind-elixir'
 import type { MindElixirData, MindElixirInstance, Theme } from 'mind-elixir'
 import { en as menuEn, zh_CN as menuZh } from 'mind-elixir/i18n'
 import 'mind-elixir/style.css'
+import { renderInlineMarkdown } from '@/core/inlineMarkdown'
 import type { MindData } from '@/core/types'
 
 /** 内置主题（name 为稳定 key，UI 展示时经 i18n 翻译） */
@@ -53,6 +54,8 @@ export class MindMapAdapter {
       toolBar: true,
       keypress: true,
       allowUndo: true,
+      // 节点内联 Markdown 渲染（**粗体**、`代码` 等），数据层保留原文
+      markdown: renderInlineMarkdown,
       contextMenu: {
         locale: options.locale === 'en' ? menuEn : menuZh,
         focus: true,
@@ -132,3 +135,8 @@ export class MindMapAdapter {
 
 /** 全应用单例（导图实例是非响应式重对象，不放入 Pinia） */
 export const mindMap = new MindMapAdapter()
+
+// 仅开发环境暴露调试钩子（浏览器 console / 自动化冒烟用）
+if (import.meta.env.DEV) {
+  ;(window as unknown as { __mindMap: MindMapAdapter }).__mindMap = mindMap
+}

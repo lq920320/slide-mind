@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Reveal from 'reveal.js'
 import 'reveal.js/reveal.css'
+import { renderInlineMarkdown as md } from '@/core/inlineMarkdown'
 import type { SlidePage } from '@/core/types'
 import { useSlidesStore } from '@/stores/slides'
 
@@ -88,19 +89,19 @@ onBeforeUnmount(() => {
           :class="`slide-${page.layout}`"
         >
           <template v-if="page.layout === 'title'">
-            <h1>{{ page.title }}</h1>
+            <h1 v-html="md(page.title)"></h1>
           </template>
           <template v-else-if="page.layout === 'section'">
-            <h2>{{ page.title }}</h2>
+            <h2 v-html="md(page.title)"></h2>
           </template>
           <template v-else-if="page.layout === 'image'">
-            <h3>{{ page.title }}</h3>
+            <h3 v-html="md(page.title)"></h3>
             <img v-if="page.image" :src="page.image.url" alt="" class="slide-image" />
           </template>
           <template v-else>
-            <h3>{{ page.title }}</h3>
+            <h3 v-html="md(page.title)"></h3>
             <ul>
-              <li v-for="(b, i) in page.bullets" :key="i" class="fragment">{{ b }}</li>
+              <li v-for="(b, i) in page.bullets" :key="i" class="fragment" v-html="md(b)"></li>
             </ul>
           </template>
         </section>
@@ -216,6 +217,14 @@ onBeforeUnmount(() => {
   object-fit: contain;
   display: block;
   margin: 0 auto;
+}
+
+.reveal :deep(code) {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: rgba(128, 138, 160, 0.18);
+  border-radius: 6px;
+  padding: 0.08em 0.35em;
 }
 
 .presenter-hud {

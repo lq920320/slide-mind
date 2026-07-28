@@ -18,6 +18,12 @@ export default defineConfig(async () => ({
   test: {
     environment: 'jsdom',
     include: ['src/**/*.{test,spec}.ts'],
+    server: {
+      deps: {
+        // file-saver 为 CJS，需经 Vite 转换后才能在测试中被 export-xmind 具名导入
+        inline: ['@mind-elixir/export-xmind', 'file-saver'],
+      },
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

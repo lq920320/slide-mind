@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isTauri } from '@tauri-apps/api/core'
 import { ask } from '@tauri-apps/plugin-dialog'
+import { renderInlineMarkdown as md } from '@/core/inlineMarkdown'
 import type { SlideLayout, SlidePage } from '@/core/types'
 import { mindMap } from '@/mindmap/adapter'
 import { useSlidesStore } from '@/stores/slides'
@@ -167,20 +168,20 @@ onBeforeUnmount(() => offSelect?.())
         >
           <div class="thumb" :class="[`layout-${page.layout}`, `thumb-${slides.appearance}`]">
             <template v-if="page.layout === 'title'">
-              <p class="t-title">{{ page.title }}</p>
+              <p class="t-title" v-html="md(page.title)"></p>
             </template>
             <template v-else-if="page.layout === 'section'">
-              <p class="t-section">{{ page.title }}</p>
+              <p class="t-section" v-html="md(page.title)"></p>
             </template>
             <template v-else-if="page.layout === 'image'">
-              <p class="t-heading">{{ page.title }}</p>
+              <p class="t-heading" v-html="md(page.title)"></p>
               <img v-if="page.image" class="t-image" :src="page.image.url" alt="" />
               <span v-else class="t-image-placeholder">🖼</span>
             </template>
             <template v-else>
-              <p class="t-heading">{{ page.title }}</p>
+              <p class="t-heading" v-html="md(page.title)"></p>
               <ul class="t-bullets">
-                <li v-for="(b, j) in page.bullets.slice(0, 4)" :key="j">{{ b }}</li>
+                <li v-for="(b, j) in page.bullets.slice(0, 4)" :key="j" v-html="md(b)"></li>
                 <li v-if="page.bullets.length > 4">…</li>
               </ul>
             </template>

@@ -3,9 +3,10 @@ import { invoke, isTauri } from '@tauri-apps/api/core'
 import { ask, open, save } from '@tauri-apps/plugin-dialog'
 import { createEmptyDocument, parseDocument, serializeDocument } from '@/core/smind'
 import type { SmindFile } from '@/core/smind'
-import type { MindNode } from '@/core/types'
+import { markdownToMind } from '@/core/markdownOutline'
+import type { MindData, MindNode } from '@/core/types'
 import { xmindToMind } from '@/core/xmindImport'
-import { t } from '@/i18n'
+import { formatError, t } from '@/i18n'
 import { mindMap } from '@/mindmap/adapter'
 import { useSettingsStore } from './settings'
 import { useSlidesStore } from './slides'
@@ -63,7 +64,7 @@ export const useDocumentStore = defineStore('document', {
         this.loadParsedDocument(doc, target, false)
         this.recentFiles = await invoke<string[]>('add_recent_file', { path: target })
       } catch (e) {
-        this.error = String(e)
+        this.error = formatError(e)
       }
     },
 
@@ -109,18 +110,37 @@ export const useDocumentStore = defineStore('document', {
         })
         if (typeof target !== 'string') return
         const content = await invoke<string>('read_xmind', { path: target })
-        const mind = xmindToMind(content)
-        this.doc = createEmptyDocument(mind.nodeData.topic)
-        this.doc.mindmap = mind
-        this.filePath = null
-        this.dirty = true
-        this.error = null
-        mindMap.load(mind)
-        this.syncOutline()
-        useSlidesStore().loadSection(null)
+        this.loadImportedMind(xmindToMind(content))
       } catch (e) {
-        this.error = String(e)
+        this.error = formatError(e)
       }
+    },
+
+    /** 导入 Markdown 大纲（作为新的未保存文档） */
+    async importMarkdown() {
+      try {
+        const target = await open({
+          filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'txt'] }],
+          multiple: false,
+        })
+        if (typeof target !== 'string') return
+        const content = await invoke<string>('read_document', { path: target })
+        this.loadImportedMind(markdownToMind(content))
+      } catch (e) {
+        this.error = formatError(e)
+      }
+    },
+
+    /** 将导入的导图作为新文档装入 */
+    loadImportedMind(mind: MindData) {
+      this.doc = createEmptyDocument(mind.nodeData.topic)
+      this.doc.mindmap = mind
+      this.filePath = null
+      this.dirty = true
+      this.error = null
+      mindMap.load(mind)
+      this.syncOutline()
+      useSlidesStore().loadSection(null)
     },
 
     /** 保存；新文档转入另存为 */
@@ -154,18 +174,21 @@ export const useDocumentStore = defineStore('document', {
         this.error = null
         return true
       } catch (e) {
-        this.error = String(e)
+        this.error = formatError(e)
         return false
       } finally {
         this.saving = false
       }
     },
 
-    /** 画布编辑回调：标脏 + 计划自动保存 + 同步大纲与幻灯片 */
+    /** 画布编辑回调：立即标脏；大纲/幻灯片同步防抖，避免大图频繁全量拷贝卡顿 */
     handleMindChange() {
       this.markDirty()
-      this.syncOutline()
-      useSlidesStore().refresh()
+      clearTimeout(syncTimer)
+      syncTimer = setTimeout(() => {
+        this.syncOutline()
+        useSlidesStore().refresh()
+      }, SYNC_DEBOUNCE)
     },
 
     /** 任何文档级修改（导图编辑/幻灯片编排）都走这里 */
@@ -200,3 +223,6 @@ export const useDocumentStore = defineStore('document', {
 })
 
 let autosaveTimer: ReturnType<typeof setTimeout> | undefined
+let syncTimer: ReturnType<typeof setTimeout> | undefined
+
+const SYNC_DEBOUNCE = 300

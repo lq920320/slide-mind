@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import { CoreError } from '@/core/errors'
 
 const zh = {
   app: { name: 'SlideMind' },
@@ -9,12 +10,16 @@ const zh = {
     save: '保存',
     saving: '保存中…',
     saveAs: '另存为',
-    import: '导入',
-    importTip: '导入 XMind 文件（.xmind）',
+    import: '导入 ▾',
+    importTip: '导入 XMind / Markdown 大纲',
+    importXmind: 'XMind (.xmind)',
+    importMarkdown: 'Markdown 大纲 (.md)',
     export: '导出 ▾',
     exportSlidev: 'Slidev Markdown (.md)',
     exportPdf: '幻灯片 PDF',
     exportPng: '幻灯片 PNG（逐页）',
+    exportOutline: 'Markdown 大纲 (.md)',
+    exportXmind: 'XMind (.xmind)',
     present: '▶ 演示',
     presentTip: '从头开始演示 (F5)',
     mapTheme: '导图主题',
@@ -30,6 +35,8 @@ const zh = {
     exportedSlidev: '已导出 Slidev Markdown：{path}',
     exportedPdf: '已导出 PDF：{path}',
     exportedPng: '已导出 {count} 张 PNG',
+    exportedOutline: '已导出 Markdown 大纲：{path}',
+    exportedXmind: '已导出 XMind：{path}',
   },
   doc: {
     untitled: '未命名导图',
@@ -93,6 +100,14 @@ const zh = {
     dark: '深色',
     light: '浅色',
   },
+  coreError: {
+    invalidJson: '文件不是合法的 JSON',
+    unsupportedVersion: '不支持的文件版本：{version}',
+    missingMindmap: '文件缺少有效的思维导图数据',
+    xmindInvalidJson: 'XMind 内容不是合法的 JSON',
+    xmindMissingRoot: 'XMind 文件缺少根主题（仅支持 XMind 2020+ 格式）',
+    markdownNoHeading: 'Markdown 中没有找到任何标题（# 开头）',
+  },
 }
 
 /** en 与 zh 结构必须一致 */
@@ -105,12 +120,16 @@ const en: typeof zh = {
     save: 'Save',
     saving: 'Saving…',
     saveAs: 'Save As',
-    import: 'Import',
-    importTip: 'Import XMind file (.xmind)',
+    import: 'Import ▾',
+    importTip: 'Import XMind / Markdown outline',
+    importXmind: 'XMind (.xmind)',
+    importMarkdown: 'Markdown outline (.md)',
     export: 'Export ▾',
     exportSlidev: 'Slidev Markdown (.md)',
     exportPdf: 'Slides PDF',
     exportPng: 'Slides PNG (per page)',
+    exportOutline: 'Markdown outline (.md)',
+    exportXmind: 'XMind (.xmind)',
     present: '▶ Present',
     presentTip: 'Present from beginning (F5)',
     mapTheme: 'Map theme',
@@ -126,6 +145,8 @@ const en: typeof zh = {
     exportedSlidev: 'Exported Slidev Markdown: {path}',
     exportedPdf: 'Exported PDF: {path}',
     exportedPng: 'Exported {count} PNG files',
+    exportedOutline: 'Exported Markdown outline: {path}',
+    exportedXmind: 'Exported XMind: {path}',
   },
   doc: {
     untitled: 'Untitled Map',
@@ -190,6 +211,14 @@ const en: typeof zh = {
     dark: 'Dark',
     light: 'Light',
   },
+  coreError: {
+    invalidJson: 'The file is not valid JSON',
+    unsupportedVersion: 'Unsupported file version: {version}',
+    missingMindmap: 'The file has no valid mind map data',
+    xmindInvalidJson: 'XMind content is not valid JSON',
+    xmindMissingRoot: 'XMind file has no root topic (only XMind 2020+ is supported)',
+    markdownNoHeading: 'No heading (#) found in the Markdown',
+  },
 }
 
 const STORAGE_KEY = 'slide-mind-locale'
@@ -216,3 +245,9 @@ export function setLocale(locale: AppLocale) {
 
 /** 组件外（store/service）使用 */
 export const t = i18n.global.t
+
+/** 统一错误文案：core 错误码翻译，其余原样展示 */
+export function formatError(e: unknown): string {
+  if (e instanceof CoreError) return t(`coreError.${e.code}`, e.params ?? {})
+  return String(e)
+}

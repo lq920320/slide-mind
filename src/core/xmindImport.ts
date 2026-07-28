@@ -1,3 +1,4 @@
+import { CoreError } from './errors'
 import type { MindData, MindNode } from './types'
 
 /**
@@ -21,12 +22,12 @@ export function xmindToMind(contentJson: string): MindData {
   try {
     sheets = JSON.parse(contentJson)
   } catch {
-    throw new Error('XMind 内容不是合法的 JSON')
+    throw new CoreError('xmindInvalidJson')
   }
 
   const sheet = Array.isArray(sheets) ? (sheets[0] as XmindSheet | undefined) : undefined
   if (!sheet?.rootTopic) {
-    throw new Error('XMind 文件缺少根主题（仅支持 XMind 2020+ 格式）')
+    throw new CoreError('xmindMissingRoot')
   }
 
   return { nodeData: convertTopic(sheet.rootTopic, 'root') }

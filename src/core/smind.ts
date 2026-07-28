@@ -1,3 +1,4 @@
+import { CoreError } from './errors'
 import type { MindData, SlidesSection } from './types'
 
 /** .smind v1 文件格式 */
@@ -39,21 +40,21 @@ export function serializeDocument(doc: SmindFile): string {
   return JSON.stringify(next, null, 2)
 }
 
-/** 解析并校验文件内容，格式非法时抛出带原因的错误 */
+/** 解析并校验文件内容，格式非法时抛 CoreError */
 export function parseDocument(content: string): SmindFile {
   let raw: unknown
   try {
     raw = JSON.parse(content)
   } catch {
-    throw new Error('文件不是合法的 JSON')
+    throw new CoreError('invalidJson')
   }
 
   const doc = raw as Partial<SmindFile>
   if (doc.version !== 1) {
-    throw new Error(`不支持的文件版本: ${String(doc.version)}`)
+    throw new CoreError('unsupportedVersion', { version: String(doc.version) })
   }
   if (!doc.mindmap?.nodeData?.id || typeof doc.mindmap.nodeData.topic !== 'string') {
-    throw new Error('文件缺少有效的思维导图数据')
+    throw new CoreError('missingMindmap')
   }
 
   return {
