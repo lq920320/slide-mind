@@ -25,3 +25,6 @@ dist-ssr
 
 # updater 签名私钥（勿提交；公钥已写入 tauri.conf.json）
 .tauri-keys/
+
+# 临时调试截图
+.qoder-*
