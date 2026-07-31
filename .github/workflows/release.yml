@@ -60,13 +60,10 @@ jobs:
           # updater 签名（必需，见 doc/03-发布指南.md）
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          # macOS 代码签名与公证（可选；未配置时产出未签名包）
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # 注意：macOS 代码签名的 APPLE_* 环境变量不可无条件引用 secrets——
+          # 不存在的 secret 会展开为空字符串，而 Tauri 只判断变量是否被定义，
+          # 空值会导致 "failed to import keychain certificate"。
+          # 如日后配置了 Apple 开发者证书，再按 doc/03-发布指南.md 添加 APPLE_* 变量。
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'SlideMind ${{ github.ref_name }}'
