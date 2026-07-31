@@ -1,8 +1,7 @@
 name: CI
 
+# 仅在向 main 提交 PR 时触发检查；推送 main 分支不触发任何 action（发布请推 v* 标签）
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
